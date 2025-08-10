@@ -44,16 +44,16 @@ public class User {
         return false;
     }
 
-    public boolean hasPurchased(String musicTitle) {
-        return purchasedMusic.contains(musicTitle);
-    }
-
     public void activatePremiumSubscription(int days) {
         if (isSubscriptionActive()) {
             subscriptionEndDate = subscriptionEndDate.plusDays(days);
         } else {
             subscriptionEndDate = LocalDate.now().plusDays(days);
         }
+    }
+
+    public void activatePremiumSubscription(LocalDate endDate) {
+        this.subscriptionEndDate = endDate;
     }
 
     public void addBalance(double amount) {
