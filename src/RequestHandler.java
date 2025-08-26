@@ -10,6 +10,7 @@ public class RequestHandler {
     private final TransactionManager transactionManager;
     private final Gson gson = new Gson();
 
+    // Init managers and link dependencies
     public RequestHandler() {
         userManager = new UserManager();
         musicManager = new MusicManager();
@@ -19,6 +20,7 @@ public class RequestHandler {
         transactionManager = new TransactionManager(userManager, musicManager);
     }
 
+    // Process incoming JSON request and return JSON response
     public String handleRequest(String message) {
         try {
             JsonObject request = gson.fromJson(message, JsonObject.class);
@@ -215,18 +217,13 @@ public class RequestHandler {
                     response.add("data", gson.toJsonTree(comments));
                     break;
 
-                case "likeComment":
+                case "reactToComment":
                     long commentId = data.get("commentId").getAsLong();
-                    boolean likeSuccess = commentManager.likeComment(commentId);
-                    response.addProperty("status", likeSuccess ? "success" : "error");
-                    response.addProperty("message", likeSuccess ? "Comment liked" : "Failed to like comment");
-                    break;
-
-                case "dislikeComment":
-                    long dislikeCommentId = data.get("commentId").getAsLong();
-                    boolean dislikeSuccess = commentManager.dislikeComment(dislikeCommentId);
-                    response.addProperty("status", dislikeSuccess ? "success" : "error");
-                    response.addProperty("message", dislikeSuccess ? "Comment disliked" : "Failed to dislike comment");
+                    userEmail = data.get("userEmail").getAsString();
+                    String reaction = data.get("reaction").getAsString();
+                    boolean reactSuccess = commentManager.reactToComment(commentId, userEmail, reaction);
+                    response.addProperty("status", reactSuccess ? "success" : "error");
+                    response.addProperty("message", reactSuccess ? "Reaction updated" : "Failed to update reaction");
                     break;
 
                 case "downloadMusic":
@@ -263,7 +260,7 @@ public class RequestHandler {
             }
 
             String responseJson = gson.toJson(response);
-            System.out.println("Sending response: " + responseJson);
+            System.out.println("Sending response length: " + responseJson.length());
             return responseJson;
         } catch (JsonSyntaxException e) {
             System.out.println("JSON parse error: " + e.getMessage());

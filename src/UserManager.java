@@ -8,15 +8,18 @@ public class UserManager {
     private List<User> users;
     private MusicManager musicManager;
 
+    // Init & load users from file
     public UserManager() {
         users = new ArrayList<>();
         loadUsers();
     }
 
+    // Set MusicManager reference
     public void setMusicManager(MusicManager musicManager) {
         this.musicManager = musicManager;
     }
 
+    // Load users from file
     private void loadUsers() {
         List<String> lines = FileUtil.readLines(USERS_FILE);
         for (String line : lines) {
@@ -28,13 +31,11 @@ public class UserManager {
                     String password = parts[2];
                     double balance = Double.parseDouble(parts[3]);
                     User user = new User(name, email, password, balance);
+
                     if (parts.length > 4 && !parts[4].isEmpty()) {
-                        String purchasedMusic = parts[4];
-                        if (!purchasedMusic.isEmpty()) {
-                            String[] musicTitles = purchasedMusic.split(",");
-                            for (String title : musicTitles) {
-                                user.addPurchasedMusic(title.trim());
-                            }
+                        String[] musicTitles = parts[4].split(",");
+                        for (String title : musicTitles) {
+                            user.addPurchasedMusic(title.trim());
                         }
                     }
                     if (parts.length > 5 && !parts[5].isEmpty()) {
@@ -48,6 +49,7 @@ public class UserManager {
         }
     }
 
+    // Save users to file
     public void saveUsers() {
         List<String> lines = users.stream().map(user -> {
             String purchasedMusic = String.join(",", user.getPurchasedMusic());
@@ -59,11 +61,13 @@ public class UserManager {
         FileUtil.writeLines(USERS_FILE, lines);
     }
 
+    // Check user credentials
     public boolean login(String email, String password) {
         return users.stream()
                 .anyMatch(user -> user.getEmail().equals(email) && user.getPassword().equals(password));
     }
 
+    // Register new user
     public boolean signUp(String name, String email, String password) {
         if (users.stream().anyMatch(user -> user.getEmail().equals(email))) {
             return false;
@@ -73,6 +77,7 @@ public class UserManager {
         return true;
     }
 
+    // Find user by email
     public User getUserByEmail(String email) {
         return users.stream()
                 .filter(user -> user.getEmail().equals(email))
@@ -80,6 +85,7 @@ public class UserManager {
                 .orElse(null);
     }
 
+    // Add balance to user
     public boolean addBalance(String userEmail, double amount) {
         User user = getUserByEmail(userEmail);
         if (user == null || amount <= 0) return false;
@@ -88,16 +94,19 @@ public class UserManager {
         return true;
     }
 
+    // Check if user exists
     public boolean userExists(String userEmail) {
         return users.stream().anyMatch(user -> user.getEmail().equals(userEmail));
     }
 
+    // Check if user purchased specific music
     public boolean hasPurchased(String userEmail, String musicTitle) {
         User user = getUserByEmail(userEmail);
         if (user == null) return false;
         return user.getPurchasedMusic().contains(musicTitle);
     }
 
+    // Check if user can access music
     public boolean canAccessMusic(String userEmail, String musicTitle) {
         User user = getUserByEmail(userEmail);
         if (user == null || musicManager == null) return false;
@@ -106,6 +115,7 @@ public class UserManager {
         return music.isFree() || user.isSubscriptionActive() || hasPurchased(userEmail, musicTitle);
     }
 
+    // Activate premium subscription
     public void activateSubscription(String userEmail, int days) {
         User user = getUserByEmail(userEmail);
         if (user != null) {
@@ -114,6 +124,7 @@ public class UserManager {
         }
     }
 
+    // Update user name/email
     public boolean updateUserInfo(String oldEmail, String newName, String newEmail) {
         User user = getUserByEmail(oldEmail);
         if (user == null) return false;
